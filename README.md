@@ -1,44 +1,73 @@
 # CNWL Job Planner
 
-Single-file, browser-local job planning tool. Current application release: **v2.0.14**.
+CNWL Job Planner v2.0.14, published at **https://jplanner.space/** through Cloudflare Pages. The GitHub repository is `OPlyons/jobplanner`.
 
-The deployable application is `public/index.html`. It is the complete original HTML, with its fonts, images, PDF/Excel libraries and blank master template embedded. It can also be downloaded and opened locally.
+The planner is a self-contained HTML application. Its images, downloads and application code remain embedded in the HTML. Plans are held in each visitor's browser; this project does not add a server database.
 
-## Cloudflare Pages setup
+## Source and exact HTML preservation
+
+`source/` contains the complete HTML compressed as deterministic gzip and divided into 128 KiB binary parts. `source/manifest.json` records their order, the release version, byte counts and SHA-256 checksums. This packaging makes the large source file easier to transfer into GitHub. It is only a source-storage and transport format.
+
+The build joins the parts, checks the compressed checksum, decompresses them, checks the original size and checksum, validates the release footer and parses every executable inline JavaScript block. It then writes the original bytes to `dist/index.html`. The published HTML, and the HTML obtained by downloading it, are identical to the supplied single-file planner. The build does not minify, rewrite or redesign the application.
+
+For this release:
+
+- Original file: `CNWL_Job_Planner(1).html`
+- HTML bytes: `8146793`
+- HTML SHA-256: `fe68fe487a1c1717402b91b9bfbae9d9f6f496895d08c12350208cb07dbf5108`
+- Executable inline JavaScript blocks: `5`
+
+`public/_headers` supplies `Cache-Control: no-cache`, `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`. It is copied alongside the restored HTML.
+
+## Build and validate
+
+Use Node.js 24. There are no npm dependencies and no dependency installation is needed locally.
+
+```sh
+npm test
+npm run build
+```
+
+`npm test` verifies the packaged source and parses the JavaScript without creating the deployment directory. It is a source validation check, not a browser interaction test. `npm run build` runs the same checks and creates `dist/index.html` and `dist/_headers`.
+
+To obtain a single HTML file for editing, build the repository and copy `dist/index.html` to an editing location. `public/index.html` is available as an optional, gitignored local editing path. The build reads the committed `source/` package rather than this local copy.
+
+## Publish through Cloudflare Pages
+
+Use the GitHub project with these settings:
 
 | Setting | Value |
 | --- | --- |
-| Project | `cnwl-job-planner` |
-| GitHub repository | `OPlyons/jobplanner` |
+| Repository | `OPlyons/jobplanner` |
 | Production branch | `main` |
 | Framework preset | None |
-| Build command | `npm run build` |
-| Output directory | `dist` |
 | Root directory | Repository root |
-| Environment variables | `NODE_VERSION=24`, `SKIP_DEPENDENCY_INSTALL=true` |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Node.js version | `24` (also set in `.node-version`) |
 | Custom domains | `jplanner.space`, `www.jplanner.space` |
 
-The project has no npm dependencies. The build validates the embedded JavaScript before copying `public/` to `dist/`. Each commit to `main` is intended to trigger a Cloudflare Pages deployment after Git integration is configured.
+Serve the application directly at `https://jplanner.space/`. Keep this origin consistent and do not redirect users to `pages.dev` or a different hostname: browser storage belongs to the origin where a plan was created. Data saved under another address or a local HTML file is not automatically transferred to this domain.
 
-## Updating the planner
+Also serve the planner directly at `https://www.jplanner.space/`, without redirecting it to the apex address. The two hostnames have separate browser storage, so users should keep using the same address for an existing plan. Use the planner's editable JSON backup and restore controls when moving a plan between addresses, browsers or devices.
 
-1. Update `public/index.html` with the reviewed single-file release.
-2. Update the version in `package.json` and the version check in `scripts/build.mjs`.
-3. Run `npm test` and `npm run build`.
-4. Commit the change. Check the Cloudflare deployment succeeds and verify the live release.
+Do not commit personal job plans, browser backups, generated staff reports or filled Excel summaries. Downloaded staff reports and summaries should follow the agreed local governance process.
 
-Do not commit personal job plans, browser backups, generated staff reports or filled Excel summaries.
+Once Cloudflare Pages is connected to the repository, a successful push to `main` triggers the next production build. Check the Pages deployment result and the custom-domain page after each release.
 
-## Data and governance
+## Update the planner
 
-Cloudflare serves the application files. The application saves entered plans in the user's browser. This repository does not add a database, staff accounts, analytics or error-reporting service. Downloaded staff reports and summaries must follow the agreed local governance process.
+1. Edit a copy of the complete HTML file, retaining all embedded content.
+2. If the release changes, update the HTML footer and `package.json` to the same version. The pack command checks that they agree.
+3. Regenerate the packaged source using the edited file:
 
-Browser storage belongs to the full origin: scheme, hostname and port. Preserve each existing hostname and HTTPS when moving hosting. Work saved at `www.jplanner.space` does not automatically appear at `jplanner.space`, so both addresses should serve the planner rather than forcing a redirect. Staff should keep an editable JSON backup before changing browser, device or address.
+   ```sh
+   npm run pack -- /path/to/updated-planner.html
+   npm test
+   npm run build
+   ```
 
-## Deployment handover
+4. Open `dist/index.html` and check the affected interactions. The build output should have the same SHA-256 as the edited input file.
+5. Commit the changed `source/` files and `package.json`, plus any intentional script, header or documentation changes. Push them to `main` to publish through the Git integration.
 
-The existing domain currently points at the previous hosting service. Create and verify the Pages deployment first. Then add both custom domains and replace only the existing apex A record and `www` CNAME with the Pages project's required DNS records. Leave other DNS records intact. Keep the previous host available during the transition.
-
-## Verification limits
-
-The application previously passed workflow, calculation, storage and PDF/Excel checks. Repository build checks validate JavaScript syntax and the copied HTML. They do not replace real-browser interaction, accessibility or NHS-device checks. Some non-Latin characters and emoji may be unavailable in generated PDFs because of the embedded font.
+The pack command uses Node's built-in gzip encoder, a zero gzip timestamp and a normalized OS header. It updates the manifest and removes obsolete generated part files if the number of parts shrinks. Do not edit the binary parts by hand. Do not commit a second full copy in `public/index.html`, and do not commit `dist/` or `node_modules/`.

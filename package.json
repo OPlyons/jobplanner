@@ -1,0 +1,14 @@
+{
+  "name": "cnwl-job-planner",
+  "version": "2.0.14",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "pack": "node scripts/pack.mjs",
+    "test": "node scripts/build.mjs --check",
+    "build": "node scripts/build.mjs"
+  }
+}

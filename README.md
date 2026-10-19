@@ -45,11 +45,11 @@ Use the GitHub project with these settings:
 | Build command | `npm run build` |
 | Build output directory | `dist` |
 | Node.js version | `24` (also set in `.node-version`) |
-| Custom domains | `jplanner.space`, `www.jplanner.space` |
+| Custom domain | `jplanner.space` |
 
 Serve the application directly at `https://jplanner.space/`. Keep this origin consistent and do not redirect users to `pages.dev` or a different hostname: browser storage belongs to the origin where a plan was created. Data saved under another address or a local HTML file is not automatically transferred to this domain.
 
-Also serve the planner directly at `https://www.jplanner.space/`, without redirecting it to the apex address. The two hostnames have separate browser storage, so users should keep using the same address for an existing plan. Use the planner's editable JSON backup and restore controls when moving a plan between addresses, browsers or devices.
+The separate `www.jplanner.space` hostname is not attached to this Pages project; its existing DNS routing was preserved. Changing that hostname requires separate owner approval. The two hostnames have separate browser storage. Use the planner's editable JSON backup and restore controls when moving a plan between addresses, browsers or devices.
 
 Do not commit personal job plans, browser backups, generated staff reports or filled Excel summaries. Downloaded staff reports and summaries should follow the agreed local governance process.
 

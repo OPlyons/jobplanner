@@ -1,12 +1,14 @@
 # CNWL Job Planner
 
-CNWL Job Planner v2.1.2. The production site is hosted at **https://jplanner.space/** through Cloudflare Pages; a review branch does not replace production until merged into `main`. The GitHub repository is `OPlyons/jobplanner`.
+CNWL Job Planner v2.1.3. The production site is hosted at **https://jplanner.space/** through Cloudflare Pages; a review branch does not replace production until merged into `main`. The GitHub repository is `OPlyons/jobplanner`.
 
 The planner is a self-contained HTML application. Its images, downloads and application code remain embedded in the HTML. Plans are held in each visitor's browser; this project does not add a server database.
 
 The visual refresh follows the approved [Figma design](https://www.figma.com/design/TlWUVHmrtFZUdGddibbiTQ): a clearer homepage, weekly activity cards, daily dials with 15-minute controls, a simpler Share screen and mobile navigation. Existing plans, calculations and exports use the same data format and engines. See [design implementation notes](docs/figma-refresh.md).
 
 v2.1.2 simplifies the homepage, highlights common annual work and adds softly tinted, clearly headed form sections. Annual commitments use a two-step Work/Time form with a live total. See [clarity changes and verification](docs/clarity-v2.1.2.md). The [v2.1.1 usability fixes](docs/usability-v2.1.1.md), including repaired Options and explicit annual navigation, are retained.
+
+v2.1.3 restores a prominent Horizontal / Vertical / Day list selector, remembers the chosen layout and keeps the draggable time sliders available in the horizontal timeline. See [layout changes and verification](docs/layout-v2.1.3.md).
 
 ## Source and exact HTML preservation
 
@@ -17,8 +19,8 @@ The build joins the parts, checks the compressed checksum, decompresses them, ch
 For this release:
 
 - Restored file: `dist/index.html`
-- HTML bytes: `8225241`
-- HTML SHA-256: `91d33ac0b92edfdca63197d5e5d1737f50506c374867f82aa71813c0fcb004c9`
+- HTML bytes: `8228870`
+- HTML SHA-256: `ad776d853538aaed6da2de19cb2e9dc3e142cfe09b4710de84c10a614f268589`
 - Executable inline JavaScript blocks: `5`
 
 `public/_headers` supplies `Cache-Control: no-cache`, `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`. It is copied alongside the restored HTML.
@@ -32,7 +34,7 @@ npm test
 npm run build
 ```
 
-`npm test` verifies the packaged source, parses the JavaScript and runs 30 regression checks against the real application and embedded PDF/Excel engines, using synthetic plans. These checks do not replace browser layout and interaction testing. `npm run build` validates the source package and creates `dist/index.html` and `dist/_headers`.
+`npm test` verifies the packaged source, parses the JavaScript and runs 37 regression checks against the real application and embedded PDF/Excel engines, using synthetic plans. These checks do not replace browser layout and interaction testing. `npm run build` validates the source package and creates `dist/index.html` and `dist/_headers`.
 
 While editing, run `node tests/planner-regression.cjs public/index.html` to test the local HTML before repackaging it.
 

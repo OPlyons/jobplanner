@@ -1,6 +1,6 @@
 # CNWL Job Planner
 
-CNWL Job Planner v2.1.4. The production site is hosted at **https://jplanner.space/** through Cloudflare Pages; a review branch does not replace production until merged into `main`. The GitHub repository is `OPlyons/jobplanner`.
+CNWL Job Planner v2.1.5. The production site is hosted at **https://jplanner.space/** through Cloudflare Pages; a review branch does not replace production until merged into `main`. The GitHub repository is `OPlyons/jobplanner`.
 
 The planner is a self-contained HTML application. Its images, downloads and application code remain embedded in the HTML. Plans are held in each visitor's browser; this project does not add a server database.
 
@@ -12,6 +12,8 @@ v2.1.3 restores a prominent Horizontal / Vertical / Day list selector, remembers
 
 v2.1.4 adds gentle colours and task icons to the homepage, with shorter horizontal diary rows and more room for the timetable. See [appearance changes and verification](docs/appearance-v2.1.4.md).
 
+v2.1.5 fixes cancelled exports affecting newer forms, preserves the chosen diary layout when starting again and updates help and export guidance. The debug pass expands automated coverage from 39 to 61 checks. See [debug findings, browser checks and limitations](docs/debug-v2.1.5.md).
+
 ## Source and exact HTML preservation
 
 `source/` contains the complete HTML compressed as deterministic gzip and divided into 128 KiB binary parts. `source/manifest.json` records their order, the release version, byte counts and SHA-256 checksums. This packaging makes the large source file easier to transfer into GitHub. It is only a source-storage and transport format.
@@ -21,8 +23,8 @@ The build joins the parts, checks the compressed checksum, decompresses them, ch
 For this release:
 
 - Restored file: `dist/index.html`
-- HTML bytes: `8236334`
-- HTML SHA-256: `ad090ec0b9281d3d2d57471d1dbc8ca01e6e376c73e248957fc1bccc99814b89`
+- HTML bytes: `8236849`
+- HTML SHA-256: `f38e31006cce1773302348ebc0029d3b2a9d86afc869eccc8e7699d200aeef56`
 - Executable inline JavaScript blocks: `5`
 
 `public/_headers` supplies `Cache-Control: no-cache`, `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`. It is copied alongside the restored HTML.
@@ -36,7 +38,7 @@ npm test
 npm run build
 ```
 
-`npm test` verifies the packaged source, parses the JavaScript and runs 39 regression checks against the real application and embedded PDF/Excel engines, using synthetic plans. These checks do not replace browser layout and interaction testing. `npm run build` validates the source package and creates `dist/index.html` and `dist/_headers`.
+`npm test` verifies the packaged source, parses the JavaScript and runs 61 regression checks against the real application and embedded PDF/Excel engines, using synthetic plans. These checks do not replace browser layout and interaction testing. `npm run build` validates the source package and creates `dist/index.html` and `dist/_headers`.
 
 While editing, run `node tests/planner-regression.cjs public/index.html` to test the local HTML before repackaging it.
 

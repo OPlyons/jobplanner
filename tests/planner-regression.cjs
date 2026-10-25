@@ -10,7 +10,7 @@ const html=process.argv[2]
  :gunzipSync(Buffer.concat(manifest.parts.map(part=>fs.readFileSync(path.join(sourceDirectory,part))))).toString('utf8');
 const app=html.match(/<script id="app-script">([\s\S]*?)<\/script>/)[1];
 const nodes=new Map(),storage=new Map(),documentEvents=new Map();
-function element(id='') {return {id,innerHTML:'',textContent:'',value:'',dataset:{},style:{setProperty(){}},classList:{add(){},remove(){},toggle(){},contains(){return false}},setAttribute(){},removeAttribute(){},getAttribute(){return null},closest(){return null},querySelector(){return null},querySelectorAll(){return []},addEventListener(){},focus(){},scrollIntoView(){},contains(){return false},appendChild(){},remove(){},click(){},setCustomValidity(){},reportValidity(){return true},close(){},showModal(){},getBoundingClientRect(){return {x:0,y:0,width:104,height:104}},insertAdjacentHTML(){}};}
+function element(id='') {return {id,innerHTML:'',textContent:'',value:'',dataset:{},style:{setProperty(){}},classList:{add(){},remove(){},toggle(){},contains(){return false}},setAttribute(){},removeAttribute(){},getAttribute(){return null},closest(){return null},querySelector(){return null},querySelectorAll(){return []},addEventListener(){},focus(){},scrollIntoView(){},contains(){return false},appendChild(){},remove(){},click(){},setCustomValidity(){},reportValidity(){return true},close(){this.open=false},showModal(){this.open=true},getBoundingClientRect(){return {x:0,y:0,width:104,height:104}},insertAdjacentHTML(){}};}
 const document={getElementById(id){if(!nodes.has(id))nodes.set(id,element(id));return nodes.get(id)},querySelector(){return null},querySelectorAll(){return []},addEventListener(name,handler){if(!documentEvents.has(name))documentEvents.set(name,[]);documentEvents.get(name).push(handler);},createElement(){return element()},body:element('body'),documentElement:element('html'),title:'Planner',activeElement:null};
 const context={console,document,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},crypto:crypto.webcrypto,structuredClone,TextEncoder,TextDecoder,URL,Blob,Uint8Array,ArrayBuffer,DataView,Date,Intl,FormData,requestAnimationFrame:f=>f(),setTimeout:()=>1,clearTimeout(){},setInterval:()=>1,clearInterval(){},matchMedia:()=>({matches:false,addEventListener(){}}),addEventListener(){},scrollTo(){},navigator:{userAgent:'node regression check'},location:{protocol:'file:'}};
 context.window=context;context.globalThis=context;
@@ -127,22 +127,158 @@ check('Compact overnight fragments keep true endpoints and count the work once',
   assert.ok(output.includes('Continues from the previous day'));assert.equal(run("totals(corePlanOccurrences('2026-10-26','2026-11-01')).work"),480);
  }finally{run(`state=JSON.parse(${JSON.stringify(before)});`);}
 });
+// Exercise calendar boundaries, data recovery and repeated-work operations with
+// independent fixtures rather than relying on the UI smoke tests above.
+function freshPlan(){
+ storage.clear();
+ run(`state=defaults();state.review=reviewDefaults();state.flex=[];state.profile.configured=true;state.profile.name='Synthetic test';state.review.from='2026-10-01';state.review.to='2026-11-30';anchor='2026-10-26';view='plan';period='week';categoryFilter='all';dayDialStart='';mainFormDirty=false;storageError='';tabConflict=false;blockedLoad=false;lastSavedRaw=null;activityDraftSession=null;dialogContext=null;`);
+}
+const entrySource=`({id:'weekly',title:'Support',category:'dcc-ip',timeType:'standard',date:'2026-10-26',start:'09:00',end:'10:00',repeat:'weekly',until:'2026-11-30',days:[0],excluded:[],notes:''})`;
+check('Repeats handle leap years, missing month dates and excluded dates',()=>{
+ freshPlan();run(`state.entries=[${entrySource}];`);
+ assert.deepEqual([...run(`occurrences('2026-10-01','2026-11-30').map(e=>e.date)`)],['2026-10-26','2026-11-02','2026-11-09','2026-11-16','2026-11-23','2026-11-30']);
+ assert.deepEqual([...run(`occurrences('2026-01-01','2026-05-31',[{...state.entries[0],date:'2026-01-31',repeat:'monthly',until:'2026-05-31',excluded:['2026-03-31']}]).map(e=>e.date)`)],['2026-01-31','2026-05-31']);
+ assert.deepEqual([...run(`occurrences('2024-01-01','2030-12-31',[{...state.entries[0],date:'2024-02-29',repeat:'yearly',until:'2030-12-31'}]).map(e=>e.date)`)],['2024-02-29','2028-02-29']);
+});
+check('Fortnightly and four-weekly repeats retain their original cycle after a split',()=>{
+ freshPlan();
+ for(const [repeat,expected] of [['fortnightly',['2026-11-09','2026-11-23']],['fourweekly',['2026-11-23']]]){
+  const actual=run(`occurrences('2026-11-01','2026-11-30',[{...${entrySource},date:'2026-11-02',repeatAnchor:'2026-10-26',repeat:'${repeat}'}]).map(e=>e.date)`);
+  assert.deepEqual([...actual],expected);
+ }
+});
+check('Capacity remains correct across clock changes and leap days',()=>{
+ freshPlan();assert.equal(run(`capacity('2026-10-19','2026-11-01')`),4500);
+ assert.equal(run(`capacity('2028-02-28','2028-03-03')`),2250);
+ assert.equal(run(`capacity('2026-10-26','2026-10-25')`),0);
+});
+check('Annual leave and bank holiday allowances are deducted only once',()=>{
+ freshPlan();run(`state.review.leave=15;state.review.bank=7.5;state.entries=[{...${entrySource},id:'leave',category:'leave',repeat:'none',start:'09:00',end:'16:30'}];`);
+ assert.equal(run('annualStats().deductions'),1350);
+ run(`state.entries.push({...state.entries[0],id:'leave-2',date:'2026-10-27'},{...state.entries[0],id:'leave-3',date:'2026-10-28'},{...state.entries[0],id:'leave-4',date:'2026-10-29'});`);
+ assert.equal(run('annualStats().deductions'),1800);
+});
+check('Adding leave skips nonworking days and existing leave',()=>{
+ freshPlan();run(`state.entries=[{...${entrySource},id:'leave',category:'leave',repeat:'none',start:'09:00',end:'16:30'}];`);
+ const p=run(`buildAnnualLeaveProposal({from:'2026-10-23',to:'2026-10-27',mode:'full'})`);
+ assert.deepEqual([...p.entries.map(e=>e.date)],['2026-10-23','2026-10-27']);assert.equal(p.nonWorking.length,2);assert.equal(p.alreadyLeave.length,1);assert.equal(p.totalMinutes,900);
+});
+check('Removing work for leave affects only the chosen occurrence and keeps recorded time',()=>{
+ freshPlan();run(`state.entries=[${entrySource}];state.actual=[{...${entrySource},id:'record',planKey:'weekly@2026-10-26'}];`);
+ const result=run(`(()=>{const p=buildAnnualLeaveProposal({from:'2026-10-26',to:'2026-10-26',mode:'full'}),n=annualLeaveCandidate(p,'remove');return {before:occurrences('2026-10-26','2026-10-26',n.entries).filter(isWork).length,next:occurrences('2026-11-02','2026-11-02',n.entries).filter(isWork).length,actual:JSON.stringify(n.actual),original:JSON.stringify(state.actual)};})()`);
+ assert.equal(result.before,0);assert.equal(result.next,1);assert.equal(result.actual,result.original);
+ assert.throws(()=>run(`annualLeaveCandidate(buildAnnualLeaveProposal({from:'2026-10-26',to:'2026-10-26',mode:'full'}),'')`),/Choose whether/);
+});
+check('Moving repeating work preserves other dates and recorded history',()=>{
+ freshPlan();run(`state.entries=[${entrySource}];state.actual=[{...${entrySource},id:'record',planKey:'weekly@2026-10-26'}];`);
+ const p=run(`buildDiaryMoveProposal('weekly','2026-10-26','2026-10-27')`);
+ assert.equal(p.hasRecorded,true);assert.equal(p.repeating,true);
+ assert.equal(run(`occurrences('2026-10-26','2026-10-26',buildDiaryMoveProposal('weekly','2026-10-26','2026-10-27').candidate.entries).length`),0);
+ assert.deepEqual([...p.candidate.actual.map(a=>a.planKey)],['weekly@2026-10-26']);
+ assert.equal(p.candidate.entries.find(e=>e.id==='weekly').excluded[0],'2026-10-26');
+});
+check('Copying a period excludes leave, overtime and exact duplicates',()=>{
+ freshPlan();run(`state.entries=[{...${entrySource},repeat:'none'},{...${entrySource},id:'leave',category:'leave',repeat:'none',date:'2026-10-27'},{...${entrySource},id:'extra',timeType:'paid_overtime',repeat:'none',date:'2026-10-28'}];`);
+ const first=run(`buildPeriodCopyProposal({from:'2026-10-26',to:'2026-11-01',target:'2026-11-02'})`);assert.equal(first.added.length,1);assert.equal(first.skipped,2);
+ run(`state.entries.push(...buildPeriodCopyProposal({from:'2026-10-26',to:'2026-11-01',target:'2026-11-02'}).entries);`);
+ const second=run(`buildPeriodCopyProposal({from:'2026-10-26',to:'2026-11-01',target:'2026-11-02'})`);assert.equal(second.added.length,0);assert.equal(second.duplicates,1);
+});
+check('Day dials stop at leave and preserve named timed activities',()=>{
+ freshPlan();run(`state.entries=[{...${entrySource},repeat:'none'},{...${entrySource},id:'leave',category:'leave',repeat:'none',start:'10:00',end:'16:30'}];`);
+ assert.throws(()=>run(`buildDayDialChange('dcc-ip',75)`),/exceed your usual hours/);
+ assert.equal(run(`buildDayDialChange('dcc-ip',30).entries.find(e=>e.id==='weekly').title`),'Support');
+});
+check('Time in motion cannot reduce timed work or exceed 24 hours',()=>{
+ freshPlan();run(`state.actual=[{...${entrySource},id:'actual',date:'2026-10-23'}];`);
+ assert.throws(()=>run(`buildMotionDialChange('dcc-ip',30,state,'2026-10-23','standard')`),/timed activities/);
+ assert.throws(()=>run(`buildMotionDialChange('spa-cpd',1440,state,'2026-10-23','standard')`),/24 hours/);
+ assert.throws(()=>run(`buildMotionDialChange('spa-cpd',60,state,addDays(today(),1),'standard')`),/today or an earlier date/);
+ assert.equal(run(`buildMotionDialChange('dcc-ip',90,state,'2026-10-23','standard').actual.filter(e=>e.durationOnly).reduce((n,e)=>n+mins(e),0)`),30);
+});
+check('Malformed backups are rejected before replacing saved work',()=>{
+ freshPlan();const original=run('JSON.stringify(state)');
+ for(const mutate of [`x.profile.hours=[8]`,`x.entries=[${entrySource},{...${entrySource}}]`,`x.entries=[{...${entrySource},start:'25:00'}]`,`x.entries=[{...${entrySource},category:'unknown'}]`,`x.entries=[{...${entrySource},repeat:'weekly',days:[]}]`,`x.review.from='2026-02-30'`,`x.flex=[{id:'x',title:'Bad',category:'spa-cpd',hours:Infinity,sessions:1}]`])assert.throws(()=>run(`(()=>{const x=structuredClone(state);${mutate};validateData(x)})()`));
+ assert.equal(run('JSON.stringify(state)'),original);
+});
+check('Storage write failure rolls back the attempted change',()=>{
+ freshPlan();run('save()');const before=storage.get('cnwl-job-planner-v1'),stateBefore=run('JSON.stringify(state)'),writer=context.localStorage.setItem;
+ context.localStorage.setItem=()=>{throw Error('Quota exceeded')};
+ try{assert.equal(run(`commitWorkChange({...structuredClone(state),entries:[${entrySource}]},'Test')`),false);assert.equal(run('JSON.stringify(state)'),stateBefore);assert.equal(storage.get('cnwl-job-planner-v1'),before);assert.ok(run('storageError').includes('could not save'));}finally{context.localStorage.setItem=writer;}
+});
+check('A newer browser tab cannot be overwritten by an older plan',()=>{
+ freshPlan();run('save()');const newer=JSON.parse(storage.get('cnwl-job-planner-v1'));newer.profile.name='Newer tab';storage.set('cnwl-job-planner-v1',JSON.stringify(newer));
+ assert.equal(run(`commitWorkChange({...structuredClone(state),entries:[${entrySource}]},'Test')`),false);assert.equal(JSON.parse(storage.get('cnwl-job-planner-v1')).profile.name,'Newer tab');assert.equal(run('tabConflict'),true);
+});
+check('Changing agreed planned work requires renewed sign-off',()=>{
+ freshPlan();run(`state.review.status='Agreement recorded';state.review.reviewer='Test manager';state.review.date=today();state.review.managerSignedOff=true;save();`);assert.equal(run('planIsApproved()'),true);
+ assert.equal(run(`commitWorkChange({...structuredClone(state),entries:[${entrySource}]},'Updated')`),true);assert.equal(run('planIsApproved()'),false);assert.equal(run('state.review.status'),'Draft');
+});
+check('Recording actual time does not invalidate an agreed prospective plan',()=>{
+ freshPlan();run(`state.review.status='Agreement recorded';state.review.reviewer='Test manager';state.review.date=today();state.review.managerSignedOff=true;save();`);
+ assert.equal(run(`motionCommit(buildMotionDialChange('dcc-ip',60,state,'2026-10-23','standard'),'Recorded')`),true);assert.equal(run('planIsApproved()'),true);
+});
+check('Large recurrence expansion fails safely without deleting activities',()=>{
+ freshPlan();run(`state.entries=Array.from({length:60},(_,i)=>({...${entrySource},id:'large-'+i,date:'2020-01-01',until:'2030-12-31',days:[0,1,2,3,4,5,6]}));`);const before=run('JSON.stringify(state)');
+ assert.throws(()=>run(`occurrences('2020-01-01','2030-12-31')`),/100,000/);assert.equal(run('JSON.stringify(state)'),before);freshPlan();
+});
+class TestFormData{
+ constructor(form){this.data=form.data;}
+ get(key){return this.data[key]??null;}
+ has(key){return Object.hasOwn(this.data,key);}
+ getAll(key){return Array.isArray(this.data[key])?this.data[key]:this.has(key)?[this.data[key]]:[];}
+}
+check('Starting a fresh plan retains the explicitly chosen diary layout',()=>{
+ freshPlan();const originalFormData=context.FormData;context.FormData=TestFormData;
+ try{
+  for(const layout of ['timeline','week','day']){
+   run(`chooseDiaryLayout('${layout}');openRestart();`);context.testForm={data:{resetMode:'work'}};run('confirmRestart(testForm)');
+   assert.equal(run('diaryLayout'),layout);assert.equal(run('preferredDiaryLayout'),layout);assert.equal(run('state.profile.name'),'Synthetic test');
+  }
+ }finally{context.FormData=originalFormData;freshPlan();}
+});
+async function checkExportCancellation(){
+ const originalFormData=context.FormData,originalPDF=run('exportPDF'),originalDownload=run('download');context.FormData=TestFormData;
+ try{
+  for(const output of ['pdf','pack']){
+   for(const outcome of ['resolve','reject']){
+    freshPlan();run(`state.profile.division='Corporate';state.profile.borough='Trust-wide';state.profile.team='Synthetic team';state.profile.profession='Lived experience / peer support';save();openExport();`);
+    const form=element('export-form');form.elements=[];form.data={output,format:'summary',from:'2026-10-01',to:'2026-11-30'};nodes.set('export-form',form);context.testForm=form;document.getElementById('pdf-download').disabled=false;
+    run(`var debugDownloads=0;var finishDebugPDF,rejectDebugPDF;var debugPDFStartedResolve;var debugPDFStarted=new Promise(resolve=>debugPDFStartedResolve=resolve);exportPDF=()=>{debugPDFStartedResolve();return new Promise((resolve,reject)=>{finishDebugPDF=resolve;rejectDebugPDF=reject})};download=()=>{debugDownloads++};var debugPending=submitPDFExport(testForm);`);
+    await run('debugPDFStarted');
+    run(`closeModal();openFlex();`);const before=nodes.get('modal-body').innerHTML;
+    run(outcome==='resolve'?`finishDebugPDF(new Uint8Array([1,2,3]));`:`rejectDebugPDF(Error('Simulated PDF failure'));`);await run('debugPending');
+    check(`Cancelled ${output} export (${outcome}) preserves a newly opened form`,()=>{
+     assert.equal(run("$('modal').open"),true);assert.equal(nodes.get('modal-title').textContent,'Add work across the year');assert.equal(nodes.get('modal-body').innerHTML,before);assert.equal(run('debugDownloads'),0);assert.ok(run('dialogContext')!==null);
+    });
+   }
+  }
+  freshPlan();run(`state.profile.division='Corporate';state.profile.borough='Trust-wide';state.profile.team='Synthetic team';state.profile.profession='Lived experience / peer support';save();`);
+  const before=storage.get('cnwl-job-planner-v1');
+  await assert.rejects(run('prepareReportPack(false,()=>false)'),/cancelled/i);
+  check('Cancelling report preparation does not write a reporting reference',()=>assert.equal(storage.get('cnwl-job-planner-v1'),before));
+ }finally{context.FormData=originalFormData;context.restorePDF=originalPDF;context.restoreDownload=originalDownload;run('exportPDF=restorePDF;download=restoreDownload;');freshPlan();}
+}
 // Run the embedded export engines too: this catches missing fonts/libraries or
 // incompatible summary rows even when a remote browser cannot capture downloads.
 async function checkExports(){
+ freshPlan();
  context.atob=atob;context.btoa=btoa;context.setTimeout=setTimeout;context.clearTimeout=clearTimeout;
  for(const [,attributes,script] of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)){
   if(!attributes.includes('app-script'))vm.runInContext(script,context,{timeout:10000});
  }
  const result=await run(`(async()=>{
+  state.entries=[{id:'export-fixture',title:'Synthetic support',category:'dcc-ip',timeType:'standard',date:'2026-10-26',start:'09:00',end:'11:00',repeat:'weekly',until:'2026-11-09',days:[0],excluded:[],notes:''}];
+  state.flex=[{id:'flex-fixture',title:'Synthetic supervision',category:'supervision',hours:1.5,sessions:6,timeType:'standard',notes:''}];
+  state.profile.notes='Private export test note';validateData(state);
   const row=buildSummaryRow(state,{personId:'TEST001',sequence:1},true);
   const xlsx=JobPlanXlsx.build(row);
   const pdf=await exportPDF(state.review.from,state.review.to,false,false,structuredClone(state),row);
   const reopened=await PDFLib.PDFDocument.load(pdf);
-  return {pdfPrefix:String.fromCharCode(...pdf.slice(0,5)),pages:reopened.getPageCount(),pdfBytes:pdf.length,xlsxPrefix:Array.from(xlsx.slice(0,4)),xlsxBytes:xlsx.length};
+  return {row,pdfPrefix:String.fromCharCode(...pdf.slice(0,5)),pages:reopened.getPageCount(),pdfBytes:pdf.length,xlsxPrefix:Array.from(xlsx.slice(0,4)),xlsxBytes:xlsx.length};
  })()`);
  check('Embedded PDF engine creates a readable five-page report',()=>{assert.equal(result.pdfPrefix,'%PDF-');assert.equal(result.pages,5);assert.ok(result.pdfBytes>10000);});
- check('Embedded Excel engine creates an XLSX archive',()=>{assert.deepEqual(Array.from(result.xlsxPrefix),[80,75,3,4]);assert.ok(result.xlsxBytes>10000);});
+ check('Embedded Excel engine creates an XLSX archive with consistent planned totals',()=>{assert.deepEqual(Array.from(result.xlsxPrefix),[80,75,3,4]);assert.ok(result.xlsxBytes>10000);assert.equal(result.row.scheduled_work_hours,6);assert.equal(result.row.flexible_work_hours,9);assert.equal(result.row.total_work_hours,15);assert.ok(!JSON.stringify(result.row).includes('Private export test note'));});
+ await checkExportCancellation();
  console.log(`Completed ${checked} planner regression checks.`);
 }
 checkExports().catch(error=>{console.error(error);process.exitCode=1;});

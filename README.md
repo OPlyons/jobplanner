@@ -1,6 +1,6 @@
 # CNWL Job Planner
 
-CNWL Job Planner v2.1.3. The production site is hosted at **https://jplanner.space/** through Cloudflare Pages; a review branch does not replace production until merged into `main`. The GitHub repository is `OPlyons/jobplanner`.
+CNWL Job Planner v2.1.4. The production site is hosted at **https://jplanner.space/** through Cloudflare Pages; a review branch does not replace production until merged into `main`. The GitHub repository is `OPlyons/jobplanner`.
 
 The planner is a self-contained HTML application. Its images, downloads and application code remain embedded in the HTML. Plans are held in each visitor's browser; this project does not add a server database.
 
@@ -9,6 +9,8 @@ The visual refresh follows the approved [Figma design](https://www.figma.com/des
 v2.1.2 simplifies the homepage, highlights common annual work and adds softly tinted, clearly headed form sections. Annual commitments use a two-step Work/Time form with a live total. See [clarity changes and verification](docs/clarity-v2.1.2.md). The [v2.1.1 usability fixes](docs/usability-v2.1.1.md), including repaired Options and explicit annual navigation, are retained.
 
 v2.1.3 restores a prominent Horizontal / Vertical / Day list selector, remembers the chosen layout and keeps the draggable time sliders available in the horizontal timeline. See [layout changes and verification](docs/layout-v2.1.3.md).
+
+v2.1.4 adds gentle colours and task icons to the homepage, with shorter horizontal diary rows and more room for the timetable. See [appearance changes and verification](docs/appearance-v2.1.4.md).
 
 ## Source and exact HTML preservation
 
@@ -19,8 +21,8 @@ The build joins the parts, checks the compressed checksum, decompresses them, ch
 For this release:
 
 - Restored file: `dist/index.html`
-- HTML bytes: `8228870`
-- HTML SHA-256: `ad776d853538aaed6da2de19cb2e9dc3e142cfe09b4710de84c10a614f268589`
+- HTML bytes: `8236334`
+- HTML SHA-256: `ad090ec0b9281d3d2d57471d1dbc8ca01e6e376c73e248957fc1bccc99814b89`
 - Executable inline JavaScript blocks: `5`
 
 `public/_headers` supplies `Cache-Control: no-cache`, `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`. It is copied alongside the restored HTML.
@@ -34,7 +36,7 @@ npm test
 npm run build
 ```
 
-`npm test` verifies the packaged source, parses the JavaScript and runs 37 regression checks against the real application and embedded PDF/Excel engines, using synthetic plans. These checks do not replace browser layout and interaction testing. `npm run build` validates the source package and creates `dist/index.html` and `dist/_headers`.
+`npm test` verifies the packaged source, parses the JavaScript and runs 39 regression checks against the real application and embedded PDF/Excel engines, using synthetic plans. These checks do not replace browser layout and interaction testing. `npm run build` validates the source package and creates `dist/index.html` and `dist/_headers`.
 
 While editing, run `node tests/planner-regression.cjs public/index.html` to test the local HTML before repackaging it.
 
@@ -57,7 +59,7 @@ Use the GitHub project with these settings:
 
 Serve the application directly at `https://jplanner.space/`. Keep this origin consistent and do not redirect users to `pages.dev` or a different hostname: browser storage belongs to the origin where a plan was created. Data saved under another address or a local HTML file is not automatically transferred to this domain.
 
-The separate `www.jplanner.space` hostname is not attached to this Pages project; its existing DNS routing was preserved. Changing that hostname requires separate owner approval. The two hostnames have separate browser storage. Use the planner's editable JSON backup and restore controls when moving a plan between addresses, browsers or devices.
+Both `jplanner.space` and `www.jplanner.space` are attached directly to this Pages project. The `www` hostname was moved from the old hosting after it was identified as the address still serving v2.0.14. Both hostnames serve the same release without redirecting between origins, preserving access to plans saved under either address. The two hostnames have separate browser storage. Use the planner's editable JSON backup and restore controls when moving a plan between addresses, browsers or devices.
 
 Do not commit personal job plans, browser backups, generated staff reports or filled Excel summaries. Downloaded staff reports and summaries should follow the agreed local governance process.
 

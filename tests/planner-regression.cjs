@@ -103,6 +103,30 @@ check('The keyboard slider handler saves time and keeps the diary and report con
  assert.equal(run("buildSummaryRow(state,{personId:'TEST001',sequence:1},true).planned_standard_work_hours*60"),135);
 });
 run(`state=JSON.parse(${JSON.stringify(resizeState)});`);
+check('Busy compact rows keep all activities and handles within their allocated space',()=>{
+ const before=run('JSON.stringify(state)');
+ try{
+  run(`state.entries=Array.from({length:12},(_,i)=>({id:'compact-'+i,title:'Overlapping activity '+i,category:'dcc-ip',date:'2026-10-26',start:'09:00',end:i%3===0?'09:15':i%3===1?'09:30':'10:00',repeat:'none',until:'2026-10-26',days:[],excluded:[],notes:''}));categoryFilter='all';`);
+  const output=run(`renderHorizontalWeek('2026-10-26',corePlanOccurrences('2026-10-26','2026-11-01'),[],new Set())`);
+  const first=output.slice(output.indexOf('class="horizontal-day '),output.indexOf('<section class="horizontal-day ',output.indexOf('class="horizontal-day ')));
+  const height=Number(first.match(/class="horizontal-track" style="height:(\d+)px/)[1]);
+  const block=Number(output.match(/--timeline-block-height:(\d+)px/)[1]);
+  const bars=[...first.matchAll(/data-lane="\d+"[^>]*top:(\d+)px/g)];assert.equal(bars.length,12);
+  for(const m of bars)assert.ok(Number(m[1])+block<=height,'A block would be clipped');
+  const handles=[...first.matchAll(/class="horizontal-resize-handle ([^"]*)"[^>]*top:(\d+)px/g)];assert.equal(handles.length,24);
+  for(const m of handles)assert.ok(Number(m[2])+(m[1].includes('resize-short')?24:block)<=height,'A handle would be clipped');
+  for(let i=0;i<12;i++)assert.ok(first.includes(`Overlapping activity ${i}`));
+ }finally{run(`state=JSON.parse(${JSON.stringify(before)});`);}
+});
+check('Compact overnight fragments keep true endpoints and count the work once',()=>{
+ const before=run('JSON.stringify(state)');
+ try{
+  run(`state.entries=[{id:'compact-night',title:'Night work',category:'dcc-ip',date:'2026-10-26',start:'22:00',end:'06:00',overnight:true,repeat:'none',until:'2026-10-26',days:[],excluded:[],notes:''}];categoryFilter='all';`);
+  const output=run(`renderHorizontalWeek('2026-10-26',corePlanOccurrences('2026-10-26','2026-11-01'),[],new Set())`);
+  assert.equal((output.match(/data-resize-id="compact-night"/g)||[]).length,2);
+  assert.ok(output.includes('Continues from the previous day'));assert.equal(run("totals(corePlanOccurrences('2026-10-26','2026-11-01')).work"),480);
+ }finally{run(`state=JSON.parse(${JSON.stringify(before)});`);}
+});
 // Run the embedded export engines too: this catches missing fonts/libraries or
 // incompatible summary rows even when a remote browser cannot capture downloads.
 async function checkExports(){

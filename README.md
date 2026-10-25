@@ -1,8 +1,12 @@
 # CNWL Job Planner
 
-CNWL Job Planner v2.0.14, published at **https://jplanner.space/** through Cloudflare Pages. The GitHub repository is `OPlyons/jobplanner`.
+CNWL Job Planner v2.1.2. The production site is hosted at **https://jplanner.space/** through Cloudflare Pages; a review branch does not replace production until merged into `main`. The GitHub repository is `OPlyons/jobplanner`.
 
 The planner is a self-contained HTML application. Its images, downloads and application code remain embedded in the HTML. Plans are held in each visitor's browser; this project does not add a server database.
+
+The visual refresh follows the approved [Figma design](https://www.figma.com/design/TlWUVHmrtFZUdGddibbiTQ): a clearer homepage, weekly activity cards, daily dials with 15-minute controls, a simpler Share screen and mobile navigation. Existing plans, calculations and exports use the same data format and engines. See [design implementation notes](docs/figma-refresh.md).
+
+v2.1.2 simplifies the homepage, highlights common annual work and adds softly tinted, clearly headed form sections. Annual commitments use a two-step Work/Time form with a live total. See [clarity changes and verification](docs/clarity-v2.1.2.md). The [v2.1.1 usability fixes](docs/usability-v2.1.1.md), including repaired Options and explicit annual navigation, are retained.
 
 ## Source and exact HTML preservation
 
@@ -12,9 +16,9 @@ The build joins the parts, checks the compressed checksum, decompresses them, ch
 
 For this release:
 
-- Original file: `CNWL_Job_Planner(1).html`
-- HTML bytes: `8146793`
-- HTML SHA-256: `fe68fe487a1c1717402b91b9bfbae9d9f6f496895d08c12350208cb07dbf5108`
+- Restored file: `dist/index.html`
+- HTML bytes: `8225241`
+- HTML SHA-256: `91d33ac0b92edfdca63197d5e5d1737f50506c374867f82aa71813c0fcb004c9`
 - Executable inline JavaScript blocks: `5`
 
 `public/_headers` supplies `Cache-Control: no-cache`, `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`. It is copied alongside the restored HTML.
@@ -28,7 +32,9 @@ npm test
 npm run build
 ```
 
-`npm test` verifies the packaged source and parses the JavaScript without creating the deployment directory. It is a source validation check, not a browser interaction test. `npm run build` runs the same checks and creates `dist/index.html` and `dist/_headers`.
+`npm test` verifies the packaged source, parses the JavaScript and runs 30 regression checks against the real application and embedded PDF/Excel engines, using synthetic plans. These checks do not replace browser layout and interaction testing. `npm run build` validates the source package and creates `dist/index.html` and `dist/_headers`.
+
+While editing, run `node tests/planner-regression.cjs public/index.html` to test the local HTML before repackaging it.
 
 To obtain a single HTML file for editing, build the repository and copy `dist/index.html` to an editing location. `public/index.html` is available as an optional, gitignored local editing path. The build reads the committed `source/` package rather than this local copy.
 

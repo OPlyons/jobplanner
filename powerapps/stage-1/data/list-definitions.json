@@ -1,0 +1,1061 @@
+{
+  "schemaVersion": 1,
+  "status": "DESIGN ONLY — NOT PROVISIONED",
+  "baselinePlannerVersion": "2.1.5",
+  "timeUnit": "integer minutes",
+  "planningDates": "date-only civil dates",
+  "auditTimestamps": "UTC",
+  "securityGate": "Do not load real staff data until data-source isolation and protected approval writes pass the two-account tests.",
+  "permissionImplementation": "Pending feasibility test; logical accessBoundary values are not SharePoint permissions.",
+  "stores": [
+    {
+      "name": "JP_Plans",
+      "purpose": "Identity and editable draft metadata",
+      "accessBoundary": "Plan owner and assigned reviewers; owner/assignment changes through protected process",
+      "columns": [
+        {
+          "name": "PlanGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "unique": true
+        },
+        {
+          "name": "ReferenceCode",
+          "type": "Text",
+          "required": true,
+          "indexed": true
+        },
+        {
+          "name": "StaffObjectId",
+          "type": "Text",
+          "required": true,
+          "indexed": true
+        },
+        {
+          "name": "StaffPerson",
+          "type": "Person",
+          "required": true
+        },
+        {
+          "name": "DisplayName",
+          "type": "Text"
+        },
+        {
+          "name": "RoleTitle",
+          "type": "Text"
+        },
+        {
+          "name": "TeamKey",
+          "type": "Text",
+          "indexed": true
+        },
+        {
+          "name": "DivisionKey",
+          "type": "Text",
+          "indexed": true
+        },
+        {
+          "name": "SubdivisionKey",
+          "type": "Text",
+          "indexed": true
+        },
+        {
+          "name": "BoroughKey",
+          "type": "Text",
+          "indexed": true
+        },
+        {
+          "name": "ProfessionKey",
+          "type": "Text",
+          "indexed": true
+        },
+        {
+          "name": "PeriodStart",
+          "type": "DateOnly",
+          "required": true,
+          "indexed": true
+        },
+        {
+          "name": "PeriodEnd",
+          "type": "DateOnly",
+          "required": true,
+          "indexed": true
+        },
+        {
+          "name": "NextReview",
+          "type": "DateOnly"
+        },
+        {
+          "name": "DraftRevision",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true
+        },
+        {
+          "name": "HoursConfirmed",
+          "type": "Boolean"
+        },
+        {
+          "name": "AnnualLeaveAllowance",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes"
+        },
+        {
+          "name": "BankHolidayAllowance",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes"
+        },
+        {
+          "name": "OtherAbsenceAllowance",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes"
+        },
+        {
+          "name": "DisplayedState",
+          "type": "Choice",
+          "choices": [
+            "Draft",
+            "Submitted",
+            "Changes requested",
+            "Agreed"
+          ],
+          "authority": "advisory only; reconcile against protected approvals"
+        },
+        {
+          "name": "SchemaVersion",
+          "type": "Text"
+        },
+        {
+          "name": "LastSavedAt",
+          "type": "DateTimeUTC"
+        }
+      ],
+      "versioning": true
+    },
+    {
+      "name": "JP_Assignments",
+      "purpose": "Authoritative plan ownership and reviewer assignment",
+      "accessBoundary": "Nominated administrator or protected process writes; participants read only their applicable assignments",
+      "columns": [
+        {
+          "name": "AssignmentGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "unique": true
+        },
+        {
+          "name": "PlanGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "references": "JP_Plans.PlanGuid"
+        },
+        {
+          "name": "ParticipantObjectId",
+          "type": "Text",
+          "required": true,
+          "indexed": true
+        },
+        {
+          "name": "ParticipantRole",
+          "type": "Choice",
+          "choices": [
+            "Owner",
+            "Manager",
+            "Second reviewer"
+          ],
+          "required": true
+        },
+        {
+          "name": "EffectiveFrom",
+          "type": "DateOnly",
+          "required": true
+        },
+        {
+          "name": "EffectiveTo",
+          "type": "DateOnly"
+        },
+        {
+          "name": "Active",
+          "type": "Boolean"
+        },
+        {
+          "name": "AssignedByObjectId",
+          "type": "Text",
+          "required": true
+        },
+        {
+          "name": "AssignedAt",
+          "type": "DateTimeUTC",
+          "required": true
+        }
+      ],
+      "versioning": true,
+      "trustRule": "Staff cannot appoint themselves as a reviewer or reassign plan ownership through a draft edit"
+    },
+    {
+      "name": "JP_WorkingPatterns",
+      "purpose": "Date-effective paid hours for all seven weekdays",
+      "accessBoundary": "Inherit the plan permission boundary",
+      "columns": [
+        {
+          "name": "PatternGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "unique": true
+        },
+        {
+          "name": "PlanGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "references": "JP_Plans.PlanGuid"
+        },
+        {
+          "name": "EffectiveFrom",
+          "type": "DateOnly",
+          "required": true
+        },
+        {
+          "name": "EffectiveTo",
+          "type": "DateOnly",
+          "required": true
+        },
+        {
+          "name": "MondayMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1440,
+          "required": true
+        },
+        {
+          "name": "TuesdayMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1440,
+          "required": true
+        },
+        {
+          "name": "WednesdayMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1440,
+          "required": true
+        },
+        {
+          "name": "ThursdayMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1440,
+          "required": true
+        },
+        {
+          "name": "FridayMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1440,
+          "required": true
+        },
+        {
+          "name": "SaturdayMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1440,
+          "required": true
+        },
+        {
+          "name": "SundayMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1440,
+          "required": true
+        }
+      ],
+      "versioning": true
+    },
+    {
+      "name": "JP_Activities",
+      "purpose": "Dated planned work or a repeat series",
+      "accessBoundary": "Inherit the plan permission boundary",
+      "columns": [
+        {
+          "name": "ActivityGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "unique": true
+        },
+        {
+          "name": "PlanGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "references": "JP_Plans.PlanGuid"
+        },
+        {
+          "name": "ActivityTitle",
+          "type": "Text",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "CategoryId",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "references": "JP_Categories.CategoryId"
+        },
+        {
+          "name": "TimeType",
+          "type": "Choice",
+          "choices": [
+            "standard",
+            "paid_overtime",
+            "unpaid_overtime"
+          ],
+          "required": true
+        },
+        {
+          "name": "AnchorDate",
+          "type": "DateOnly",
+          "required": true,
+          "indexed": true
+        },
+        {
+          "name": "StartMinute",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1439
+        },
+        {
+          "name": "EndMinute",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1439
+        },
+        {
+          "name": "Overnight",
+          "type": "Boolean"
+        },
+        {
+          "name": "BreakMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1439
+        },
+        {
+          "name": "DurationOnly",
+          "type": "Boolean"
+        },
+        {
+          "name": "DurationMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1440
+        },
+        {
+          "name": "RepeatType",
+          "type": "Choice",
+          "choices": [
+            "none",
+            "daily",
+            "weekly",
+            "fortnightly",
+            "monthly"
+          ],
+          "note": "Confirm exact legacy values during stage 2 migration mapping"
+        },
+        {
+          "name": "RepeatUntil",
+          "type": "DateOnly"
+        },
+        {
+          "name": "RepeatCutoff",
+          "type": "DateOnly"
+        },
+        {
+          "name": "Location",
+          "type": "Text",
+          "maxLength": 200
+        },
+        {
+          "name": "ActivityNotes",
+          "type": "Note",
+          "plainText": true,
+          "maxLength": 5000
+        },
+        {
+          "name": "IsExample",
+          "type": "Boolean"
+        }
+      ],
+      "versioning": true
+    },
+    {
+      "name": "JP_Exceptions",
+      "purpose": "Occurrence exclusion or replacement",
+      "accessBoundary": "Inherit the plan permission boundary",
+      "columns": [
+        {
+          "name": "ExceptionKey",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "unique": true
+        },
+        {
+          "name": "PlanGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "references": "JP_Plans.PlanGuid"
+        },
+        {
+          "name": "SeriesGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "references": "JP_Activities.ActivityGuid"
+        },
+        {
+          "name": "OccurrenceDate",
+          "type": "DateOnly",
+          "required": true
+        },
+        {
+          "name": "Action",
+          "type": "Choice",
+          "choices": [
+            "Skip",
+            "Replace"
+          ],
+          "required": true
+        },
+        {
+          "name": "ReplacementActivityGuid",
+          "type": "Text",
+          "references": "JP_Activities.ActivityGuid"
+        }
+      ],
+      "versioning": true,
+      "uniqueRule": "ExceptionKey = SeriesGuid + civil occurrence date; one active exception per occurrence"
+    },
+    {
+      "name": "JP_AnnualWork",
+      "purpose": "Undated annual commitments",
+      "accessBoundary": "Inherit the plan permission boundary",
+      "columns": [
+        {
+          "name": "CommitmentGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "unique": true
+        },
+        {
+          "name": "PlanGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "references": "JP_Plans.PlanGuid"
+        },
+        {
+          "name": "ActivityTitle",
+          "type": "Text",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "CategoryId",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "references": "JP_Categories.CategoryId"
+        },
+        {
+          "name": "TimeType",
+          "type": "Choice",
+          "choices": [
+            "standard",
+            "paid_overtime",
+            "unpaid_overtime"
+          ],
+          "required": true
+        },
+        {
+          "name": "MinutesPerSession",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "required": true
+        },
+        {
+          "name": "SessionCount",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "required": true
+        },
+        {
+          "name": "CheckedForDiaryDuplication",
+          "type": "Boolean"
+        }
+      ],
+      "versioning": true
+    },
+    {
+      "name": "JP_Discussions",
+      "purpose": "Private review conversation and support needs",
+      "accessBoundary": "Plan owner and assigned reviewers; no default access for reporting editors",
+      "columns": [
+        {
+          "name": "DiscussionGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "unique": true
+        },
+        {
+          "name": "PlanGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "references": "JP_Plans.PlanGuid"
+        },
+        {
+          "name": "Needs",
+          "type": "Note",
+          "plainText": true,
+          "maxLength": 5000
+        },
+        {
+          "name": "Objectives",
+          "type": "Note",
+          "plainText": true,
+          "maxLength": 5000
+        },
+        {
+          "name": "Resources",
+          "type": "Note",
+          "plainText": true,
+          "maxLength": 5000
+        },
+        {
+          "name": "Adjustments",
+          "type": "Note",
+          "plainText": true,
+          "maxLength": 5000
+        },
+        {
+          "name": "Supervision",
+          "type": "Note",
+          "plainText": true,
+          "maxLength": 5000
+        },
+        {
+          "name": "Discussion",
+          "type": "Note",
+          "plainText": true,
+          "maxLength": 5000
+        },
+        {
+          "name": "DiscussionDate",
+          "type": "DateOnly"
+        },
+        {
+          "name": "LastSavedAt",
+          "type": "DateTimeUTC"
+        }
+      ],
+      "versioning": true
+    },
+    {
+      "name": "JP_RecordedTime",
+      "purpose": "Retrospective actual work and personal reflections",
+      "accessBoundary": "Owner only by default; further access explicitly agreed",
+      "columns": [
+        {
+          "name": "ActualGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "unique": true
+        },
+        {
+          "name": "PlanGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "references": "JP_Plans.PlanGuid"
+        },
+        {
+          "name": "WorkDate",
+          "type": "DateOnly",
+          "required": true,
+          "indexed": true
+        },
+        {
+          "name": "CategoryId",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "references": "JP_Categories.CategoryId"
+        },
+        {
+          "name": "TimeType",
+          "type": "Choice",
+          "choices": [
+            "standard",
+            "paid_overtime",
+            "unpaid_overtime"
+          ],
+          "required": true
+        },
+        {
+          "name": "StartMinute",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1439
+        },
+        {
+          "name": "EndMinute",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1439
+        },
+        {
+          "name": "Overnight",
+          "type": "Boolean"
+        },
+        {
+          "name": "BreakMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1439
+        },
+        {
+          "name": "DurationMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes",
+          "maximum": 1440
+        },
+        {
+          "name": "PlannedOccurrenceKey",
+          "type": "Text",
+          "note": "Unique when populated; matches series ID and civil date"
+        },
+        {
+          "name": "WhatHelped",
+          "type": "Note",
+          "plainText": true,
+          "maxLength": 5000
+        },
+        {
+          "name": "WhatMadeWorkHarder",
+          "type": "Note",
+          "plainText": true,
+          "maxLength": 5000
+        },
+        {
+          "name": "OneChangeToTry",
+          "type": "Note",
+          "plainText": true,
+          "maxLength": 5000
+        },
+        {
+          "name": "BenefitForServiceUsers",
+          "type": "Note",
+          "plainText": true,
+          "maxLength": 5000
+        },
+        {
+          "name": "HowWeWillKnow",
+          "type": "Note",
+          "plainText": true,
+          "maxLength": 5000
+        }
+      ],
+      "versioning": true
+    },
+    {
+      "name": "JP_Approvals",
+      "purpose": "Authoritative decisions tied to an immutable version",
+      "accessBoundary": "Protected service-owned store; users submit authenticated requests, not direct writes",
+      "columns": [
+        {
+          "name": "ApprovalGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "unique": true
+        },
+        {
+          "name": "PlanGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "references": "JP_Plans.PlanGuid"
+        },
+        {
+          "name": "VersionGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true
+        },
+        {
+          "name": "SnapshotFingerprint",
+          "type": "Text",
+          "required": true
+        },
+        {
+          "name": "ReviewerObjectId",
+          "type": "Text",
+          "required": true
+        },
+        {
+          "name": "ReviewerRole",
+          "type": "Choice",
+          "choices": [
+            "Manager",
+            "Second reviewer"
+          ],
+          "required": true
+        },
+        {
+          "name": "Decision",
+          "type": "Choice",
+          "choices": [
+            "Submitted",
+            "Approved",
+            "Changes requested",
+            "Withdrawn"
+          ],
+          "required": true
+        },
+        {
+          "name": "DecisionAt",
+          "type": "DateTimeUTC",
+          "required": true
+        },
+        {
+          "name": "WorkflowRequestKey",
+          "type": "Text",
+          "indexed": true,
+          "unique": true
+        },
+        {
+          "name": "DecisionComment",
+          "type": "Note",
+          "plainText": true,
+          "maxLength": 5000
+        }
+      ],
+      "versioning": true,
+      "trustRule": "Resolve reviewer assignment and caller identity in a protected process; do not trust email/status supplied by a canvas client"
+    },
+    {
+      "name": "JP_ApprovedSummaries",
+      "purpose": "Reporting-safe output for exact approved versions",
+      "accessBoundary": "Protected process writes; authorised reporting readers",
+      "columns": [
+        {
+          "name": "SummaryKey",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "unique": true
+        },
+        {
+          "name": "ReferenceCode",
+          "type": "Text",
+          "required": true,
+          "indexed": true
+        },
+        {
+          "name": "VersionGuid",
+          "type": "Text",
+          "required": true,
+          "indexed": true
+        },
+        {
+          "name": "SnapshotFingerprint",
+          "type": "Text",
+          "required": true
+        },
+        {
+          "name": "PeriodStart",
+          "type": "DateOnly",
+          "required": true,
+          "indexed": true
+        },
+        {
+          "name": "PeriodEnd",
+          "type": "DateOnly",
+          "required": true,
+          "indexed": true
+        },
+        {
+          "name": "DivisionKey",
+          "type": "Text",
+          "indexed": true
+        },
+        {
+          "name": "SubdivisionKey",
+          "type": "Text",
+          "indexed": true
+        },
+        {
+          "name": "BoroughKey",
+          "type": "Text",
+          "indexed": true
+        },
+        {
+          "name": "TeamKey",
+          "type": "Text",
+          "indexed": true
+        },
+        {
+          "name": "ProfessionKey",
+          "type": "Text",
+          "indexed": true
+        },
+        {
+          "name": "GrossMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes"
+        },
+        {
+          "name": "AbsenceDeductionMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes"
+        },
+        {
+          "name": "AvailableMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes"
+        },
+        {
+          "name": "ScheduledUsualMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes"
+        },
+        {
+          "name": "AnnualUsualMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes"
+        },
+        {
+          "name": "PaidOvertimeMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes"
+        },
+        {
+          "name": "UnpaidOvertimeMinutes",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true,
+          "unit": "minutes"
+        },
+        {
+          "name": "CategoryTotalsJson",
+          "type": "Note",
+          "plainText": true,
+          "note": "Generated totals by stable category ID, dated/undated and time type; complete sums must be independently checked"
+        },
+        {
+          "name": "Eligible",
+          "type": "Boolean",
+          "indexed": true
+        },
+        {
+          "name": "CalculationVersion",
+          "type": "Text",
+          "required": true
+        },
+        {
+          "name": "GeneratedAt",
+          "type": "DateTimeUTC"
+        }
+      ],
+      "versioning": true,
+      "uniqueRule": "One current counted summary per reference + exact period, with a retained immutable version history",
+      "excluded": [
+        "staff names",
+        "private discussion",
+        "sickness detail",
+        "actual time",
+        "personal reflections"
+      ]
+    },
+    {
+      "name": "JP_Directory",
+      "purpose": "Controlled organisational and profession choices",
+      "accessBoundary": "Nominated editor writes; authorised app users read",
+      "columns": [
+        {
+          "name": "DirectoryKey",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "unique": true
+        },
+        {
+          "name": "EntryType",
+          "type": "Choice",
+          "choices": [
+            "Team",
+            "Division",
+            "Subdivision",
+            "Borough",
+            "Profession"
+          ],
+          "required": true
+        },
+        {
+          "name": "DisplayName",
+          "type": "Text",
+          "required": true
+        },
+        {
+          "name": "ParentKey",
+          "type": "Text"
+        },
+        {
+          "name": "AliasesJson",
+          "type": "Note",
+          "plainText": true
+        },
+        {
+          "name": "Active",
+          "type": "Boolean"
+        },
+        {
+          "name": "EffectiveFrom",
+          "type": "DateOnly"
+        },
+        {
+          "name": "EffectiveTo",
+          "type": "DateOnly"
+        }
+      ],
+      "versioning": true
+    },
+    {
+      "name": "JP_Categories",
+      "purpose": "Original planner category taxonomy and visual tokens",
+      "accessBoundary": "Nominated editor writes; authorised app users read",
+      "columns": [
+        {
+          "name": "CategoryId",
+          "type": "Text",
+          "required": true,
+          "indexed": true,
+          "unique": true
+        },
+        {
+          "name": "DisplayName",
+          "type": "Text",
+          "required": true
+        },
+        {
+          "name": "ShortName",
+          "type": "Text"
+        },
+        {
+          "name": "ReportingCode",
+          "type": "Text"
+        },
+        {
+          "name": "CategoryGroup",
+          "type": "Text"
+        },
+        {
+          "name": "Tint",
+          "type": "Text"
+        },
+        {
+          "name": "Accent",
+          "type": "Text"
+        },
+        {
+          "name": "IsWork",
+          "type": "Boolean"
+        },
+        {
+          "name": "IsPaid",
+          "type": "Boolean"
+        },
+        {
+          "name": "SortOrder",
+          "type": "Number",
+          "minimum": 0,
+          "integer": true
+        },
+        {
+          "name": "Active",
+          "type": "Boolean"
+        }
+      ],
+      "versioning": true
+    }
+  ],
+  "documentLibrary": {
+    "name": "JobPlannerVersions",
+    "purpose": "Immutable submitted/approved snapshots and generated reports",
+    "creationStatus": "not created",
+    "access": "Authorised plan participants; generated exports scoped separately",
+    "versioning": true
+  }
+}

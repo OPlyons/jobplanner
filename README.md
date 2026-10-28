@@ -4,6 +4,8 @@ CNWL Job Planner v2.1.5. The production site is hosted at **https://jplanner.spa
 
 The planner is a self-contained HTML application. Its images, downloads and application code remain embedded in the HTML. Plans are held in each visitor's browser; this project does not add a server database.
 
+A separate [Power Apps stage 1 project](powerapps/stage-1/README.md) contains the native canvas prototype, feature inventory, proposed data model and workbook compatibility contract. It does not change the published HTML application. Shared storage and multi-user access checks are still pending.
+
 The visual refresh follows the approved [Figma design](https://www.figma.com/design/TlWUVHmrtFZUdGddibbiTQ): a clearer homepage, weekly activity cards, daily dials with 15-minute controls, a simpler Share screen and mobile navigation. Existing plans, calculations and exports use the same data format and engines. See [design implementation notes](docs/figma-refresh.md).
 
 v2.1.2 simplifies the homepage, highlights common annual work and adds softly tinted, clearly headed form sections. Annual commitments use a two-step Work/Time form with a live total. See [clarity changes and verification](docs/clarity-v2.1.2.md). The [v2.1.1 usability fixes](docs/usability-v2.1.1.md), including repaired Options and explicit annual navigation, are retained.

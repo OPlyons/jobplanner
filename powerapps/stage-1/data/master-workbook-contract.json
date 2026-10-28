@@ -1,0 +1,274 @@
+{
+  "baseline": "2.1.5",
+  "tabs": [
+    "Dashboard",
+    "Paste plans",
+    "Check entries",
+    "Team list"
+  ],
+  "copyRange": "A2:BG2",
+  "pasteStart": "A9",
+  "headers": [
+    {
+      "cell": "A8",
+      "label": "Template version"
+    },
+    {
+      "cell": "B8",
+      "label": "Plan reference"
+    },
+    {
+      "cell": "C8",
+      "label": "Plan version"
+    },
+    {
+      "cell": "D8",
+      "label": "Period starts"
+    },
+    {
+      "cell": "E8",
+      "label": "Period ends"
+    },
+    {
+      "cell": "F8",
+      "label": "Agreement"
+    },
+    {
+      "cell": "G8",
+      "label": "Agreed on"
+    },
+    {
+      "cell": "H8",
+      "label": "Next review"
+    },
+    {
+      "cell": "I8",
+      "label": "Division"
+    },
+    {
+      "cell": "J8",
+      "label": "Borough / area"
+    },
+    {
+      "cell": "K8",
+      "label": "Team"
+    },
+    {
+      "cell": "L8",
+      "label": "Professional group"
+    },
+    {
+      "cell": "M8",
+      "label": "Profession / role"
+    },
+    {
+      "cell": "N8",
+      "label": "Exported at (UTC)"
+    },
+    {
+      "cell": "O8",
+      "label": "Scheduled work (h)"
+    },
+    {
+      "cell": "P8",
+      "label": "Flexible work (h)"
+    },
+    {
+      "cell": "Q8",
+      "label": "Total planned work (h)"
+    },
+    {
+      "cell": "R8",
+      "label": "Overlapping diary activities"
+    },
+    {
+      "cell": "S8",
+      "label": "Includes examples?"
+    },
+    {
+      "cell": "T8",
+      "label": "Flexible work checked?"
+    },
+    {
+      "cell": "U8",
+      "label": "Scheduled: Direct care or support / one person (h)"
+    },
+    {
+      "cell": "V8",
+      "label": "Flexible: Direct care or support / one person (h)"
+    },
+    {
+      "cell": "W8",
+      "label": "Scheduled: Direct care or support / groups (h)"
+    },
+    {
+      "cell": "X8",
+      "label": "Flexible: Direct care or support / groups (h)"
+    },
+    {
+      "cell": "Y8",
+      "label": "Scheduled: Care-related work / for one person (h)"
+    },
+    {
+      "cell": "Z8",
+      "label": "Flexible: Care-related work / for one person (h)"
+    },
+    {
+      "cell": "AA8",
+      "label": "Scheduled: Care-related work / groups or services (h)"
+    },
+    {
+      "cell": "AB8",
+      "label": "Flexible: Care-related work / groups or services (h)"
+    },
+    {
+      "cell": "AC8",
+      "label": "Scheduled: Team and management work (h)"
+    },
+    {
+      "cell": "AD8",
+      "label": "Flexible: Team and management work (h)"
+    },
+    {
+      "cell": "AE8",
+      "label": "Scheduled: Learning and development (h)"
+    },
+    {
+      "cell": "AF8",
+      "label": "Flexible: Learning and development (h)"
+    },
+    {
+      "cell": "AG8",
+      "label": "Scheduled: Additional responsibilities (h)"
+    },
+    {
+      "cell": "AH8",
+      "label": "Flexible: Additional responsibilities (h)"
+    },
+    {
+      "cell": "AI8",
+      "label": "Scheduled: Work with other organisations (h)"
+    },
+    {
+      "cell": "AJ8",
+      "label": "Flexible: Work with other organisations (h)"
+    },
+    {
+      "cell": "AK8",
+      "label": "Scheduled: Travel for work (h)"
+    },
+    {
+      "cell": "AL8",
+      "label": "Flexible: Travel for work (h)"
+    },
+    {
+      "cell": "AM8",
+      "label": "Scheduled: Receiving supervision and reflective practice (h)"
+    },
+    {
+      "cell": "AN8",
+      "label": "Flexible: Receiving supervision and reflective practice (h)"
+    },
+    {
+      "cell": "AO8",
+      "label": "Scheduled: Teaching and supporting learning (h)"
+    },
+    {
+      "cell": "AP8",
+      "label": "Flexible: Teaching and supporting learning (h)"
+    },
+    {
+      "cell": "AQ8",
+      "label": "Scheduled: Research, audit and improvement (h)"
+    },
+    {
+      "cell": "AR8",
+      "label": "Flexible: Research, audit and improvement (h)"
+    },
+    {
+      "cell": "AS8",
+      "label": "Scheduled: Co-production and service development (h)"
+    },
+    {
+      "cell": "AT8",
+      "label": "Flexible: Co-production and service development (h)"
+    },
+    {
+      "cell": "AU8",
+      "label": "Scheduled: Social value (h)"
+    },
+    {
+      "cell": "AV8",
+      "label": "Flexible: Social value (h)"
+    },
+    {
+      "cell": "AW8",
+      "label": "Scheduled: Other work (h)"
+    },
+    {
+      "cell": "AX8",
+      "label": "Flexible: Other work (h)"
+    },
+    {
+      "cell": "AY8",
+      "label": "Directorate / subdivision"
+    },
+    {
+      "cell": "AZ8",
+      "label": "Usual hours checked"
+    },
+    {
+      "cell": "BA8",
+      "label": "Usual paid hours in period"
+    },
+    {
+      "cell": "BB8",
+      "label": "Absence allowance hours"
+    },
+    {
+      "cell": "BC8",
+      "label": "Available work hours"
+    },
+    {
+      "cell": "BD8",
+      "label": "Planned usual work hours"
+    },
+    {
+      "cell": "BE8",
+      "label": "Planned paid overtime hours"
+    },
+    {
+      "cell": "BF8",
+      "label": "Planned unpaid overtime hours"
+    },
+    {
+      "cell": "BG8",
+      "label": "Planned work above available hours"
+    },
+    {
+      "cell": "BH8",
+      "label": "Details check"
+    },
+    {
+      "cell": "BI8",
+      "label": "Hours check"
+    },
+    {
+      "cell": "BJ8",
+      "label": "Same person and period"
+    },
+    {
+      "cell": "BK8",
+      "label": "Overlapping periods"
+    },
+    {
+      "cell": "BL8",
+      "label": "Reporting status"
+    },
+    {
+      "cell": "BM8",
+      "label": "In selected view"
+    }
+  ],
+  "source": "embedded master-template-download; template only, no staff data"
+}

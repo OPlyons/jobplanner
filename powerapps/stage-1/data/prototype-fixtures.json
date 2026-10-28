@@ -1,0 +1,100 @@
+{
+  "profile": {
+    "DisplayName": "Alex Example",
+    "RoleTitle": "Peer Support Worker (example)",
+    "TeamName": "Example team",
+    "WeeklyHours": 37.5
+  },
+  "activities": [
+    {
+      "RowId": 1,
+      "DayLabel": "Mon",
+      "ActivityTitle": "One-to-one support",
+      "CategoryId": "dcc-ip",
+      "CategoryLabel": "Direct care / support",
+      "DurationMinutes": 120,
+      "Tint": "#E5EEFC"
+    },
+    {
+      "RowId": 2,
+      "DayLabel": "Mon",
+      "ActivityTitle": "Care planning and follow-up",
+      "CategoryId": "icc-ip",
+      "CategoryLabel": "Care-related work",
+      "DurationMinutes": 75,
+      "Tint": "#E9F4E6"
+    },
+    {
+      "RowId": 3,
+      "DayLabel": "Tue",
+      "ActivityTitle": "Peer support group",
+      "CategoryId": "dcc-nip",
+      "CategoryLabel": "Group care / support",
+      "DurationMinutes": 90,
+      "Tint": "#E2F4F2"
+    },
+    {
+      "RowId": 4,
+      "DayLabel": "Tue",
+      "ActivityTitle": "Team meeting",
+      "CategoryId": "spa-csm",
+      "CategoryLabel": "Team / management",
+      "DurationMinutes": 60,
+      "Tint": "#FCEEE2"
+    },
+    {
+      "RowId": 5,
+      "DayLabel": "Wed",
+      "ActivityTitle": "Supervision and reflection",
+      "CategoryId": "supervision",
+      "CategoryLabel": "Supervision / reflection",
+      "DurationMinutes": 60,
+      "Tint": "#EEE8F9"
+    },
+    {
+      "RowId": 6,
+      "DayLabel": "Wed",
+      "ActivityTitle": "Learning and development",
+      "CategoryId": "spa-cpd",
+      "CategoryLabel": "Learning / development",
+      "DurationMinutes": 120,
+      "Tint": "#FAE6E5"
+    },
+    {
+      "RowId": 7,
+      "DayLabel": "Thu",
+      "ActivityTitle": "Co-production workshop",
+      "CategoryId": "coproduction",
+      "CategoryLabel": "Co-production",
+      "DurationMinutes": 120,
+      "Tint": "#E1F3F7"
+    },
+    {
+      "RowId": 8,
+      "DayLabel": "Thu",
+      "ActivityTitle": "Service improvement",
+      "CategoryId": "research",
+      "CategoryLabel": "Research / improvement",
+      "DurationMinutes": 60,
+      "Tint": "#FAEAEF"
+    },
+    {
+      "RowId": 9,
+      "DayLabel": "Fri",
+      "ActivityTitle": "One-to-one support",
+      "CategoryId": "dcc-ip",
+      "CategoryLabel": "Direct care / support",
+      "DurationMinutes": 120,
+      "Tint": "#E5EEFC"
+    },
+    {
+      "RowId": 10,
+      "DayLabel": "Fri",
+      "ActivityTitle": "Travel for work",
+      "CategoryId": "travel",
+      "CategoryLabel": "Travel",
+      "DurationMinutes": 60,
+      "Tint": "#EDEBF3"
+    }
+  ]
+}
